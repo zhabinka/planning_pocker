@@ -50,4 +50,22 @@ defmodule PlanningPocker.Rooms do
       DynamicSupervisor.init(strategy: :one_for_one)
     end
   end
+
+  defmodule RoomManager do
+    use GenServer
+
+    def start_link(_) do
+      GenServer.start_link(__MODULE__, :no_args, name: __MODULE__)
+    end
+
+    @impl true
+    def init(_) do
+      state = %{
+        rooms: []
+      }
+
+      Logger.info("RoomManager has started with state #{inspect(state)}")
+      {:ok, state}
+    end
+  end
 end
