@@ -43,7 +43,8 @@ defmodule PlanningPocker.Sessions do
       case :gen_tcp.recv(state.socket, 0, 30_000) do
         {:ok, data} ->
           IO.puts("Session #{state.session_id} got data #{data}")
-          :gen_tcp.send(state.socket, "OK\n")
+          response = data |> String.trim_trailing() |> handle_request()
+          :gen_tcp.send(state.socket, response <> "\n")
           {:noreply, state, {:continue, :receive_data}}
 
         {:error, :timeout} ->
@@ -54,6 +55,19 @@ defmodule PlanningPocker.Sessions do
           IO.puts("Session #{state.session_id} has got error #{inspect(error)}")
           :gen_tcp.close(state.socket)
           {:noreply, state, {:continue, :waiting_for_client}}
+      end
+    end
+
+    def handle_request(request) do
+      alias PlanningPocker.Protocol
+
+      case Protocol.deserialyze(request) do
+        {:error, error} ->
+          Protocol.serialyze({:error, error})
+
+        event ->
+          Logger.info("Event: #{inspect(event)}")
+          Protocol.serialyze(:ok)
       end
     end
   end

@@ -12,7 +12,11 @@ defmodule PlanningPocker.Protocol do
 
   def deserialyze("show"), do: :show
   def deserialyze("quit"), do: :quit
-  def deserialyze(message), do: Logger.error("Protocol: unknown data #{message}")
+
+  def deserialyze(message) do
+    Logger.warning("Protocol: unknown data #{message}")
+    {:error, :unknown_message}
+  end
 
   def serialyze({:joined, user, room}),
     do: "#{user.role} #{user.name} hash joined to the room #{room.name}"
