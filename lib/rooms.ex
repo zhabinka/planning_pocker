@@ -58,6 +58,10 @@ defmodule PlanningPocker.Rooms do
       GenServer.start_link(__MODULE__, :no_args, name: __MODULE__)
     end
 
+    def start_room(room_name) do
+      GenServer.call(__MODULE__, {:start_room, room_name})
+    end
+
     @impl true
     def init(_) do
       state = %{
@@ -66,6 +70,14 @@ defmodule PlanningPocker.Rooms do
 
       Logger.info("RoomManager has started with state #{inspect(state)}")
       {:ok, state}
+    end
+
+    @impl true
+    def handle_call({:start_room, room_name}, _from, %{rooms: rooms} = state) do
+      {:ok, room_pid} = Sup.start_room(room_name)
+      state = %{state | rooms: [room_pid | rooms]}
+      Logger.info("RoomManager has started room #{inspect(room_pid)}, state: #{inspect(state)}")
+      {:reply, :ok, state}
     end
   end
 end
