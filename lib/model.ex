@@ -3,10 +3,11 @@ defmodule PlanningPocker.Model do
 
   defmodule User do
     @type t() :: %__MODULE__{
+            id: integer(),
             name: String.t(),
             role: Model.role()
           }
-    defstruct [:name, :role]
+    defstruct [:id, :name, :role]
   end
 
   defmodule Room do
