@@ -1,18 +1,9 @@
 defmodule PlanningPocker do
-  @moduledoc """
-  Documentation for `PlanningPocker`.
-  """
+  use Application
+  require Logger
 
-  @doc """
-  Hello world.
-
-  ## Examples
-
-      iex> PlanningPocker.hello()
-      :world
-
-  """
-  def hello do
-    :world
+  def start(_start_type, _args) do
+    Logger.info("Start PlanningPocker")
+    {:ok, self()}
   end
 end
