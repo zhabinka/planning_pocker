@@ -30,10 +30,10 @@ defmodule PlanningPocker.Sessions do
 
     @impl true
     def handle_continue(:waiting_for_client, state) do
-      IO.puts("Session #{state.session_id} waiting for client")
+      IO.puts("Session #{state.session_id} waiting for client, #{inspect(state)}")
       {:ok, socket} = :gen_tcp.accept(state.listening_socket)
       state = %State{state | socket: socket}
-      IO.puts("Session #{state.session_id} got client, state #{inspect(state)}")
+      IO.puts("Session #{state.session_id} got client, #{inspect(state)}")
       {:noreply, state, {:continue, :receive_data}}
     end
 
@@ -59,6 +59,7 @@ defmodule PlanningPocker.Sessions do
         {:error, error} ->
           IO.puts("Session #{state.session_id} has got error #{inspect(error)}")
           :gen_tcp.close(state.socket)
+          state = %State{state | user: nil}
           {:noreply, state, {:continue, :waiting_for_client}}
       end
     end
