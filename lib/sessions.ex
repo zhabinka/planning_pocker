@@ -38,7 +38,7 @@ defmodule PlanningPocker.Sessions do
     end
 
     def handle_continue(:receive_data, state) do
-      IO.puts("Session #{state.session_id} is waiting for data")
+      IO.puts("Session #{state.session_id} is waiting for data #{inspect(state)}")
 
       case :gen_tcp.recv(state.socket, 0, 30_000) do
         {:ok, data} ->
@@ -79,18 +79,16 @@ defmodule PlanningPocker.Sessions do
     def handle_event({:login, name}, state) do
       alias PlanningPocker.UsersDatabase
 
-      result =
-        case UsersDatabase.find_by_name(name) do
-          {:ok, user} ->
-            Logger.info("Auth user #{inspect(user)}")
-            :ok
+      case UsersDatabase.find_by_name(name) do
+        {:ok, user} ->
+          Logger.info("Auth user #{inspect(user)}")
+          state = %State{state | user: user}
+          {:ok, state}
 
-          {:error, :not_found} ->
-            Logger.warning("User #{name} auth error")
-            {:error, :invalid_auth}
-        end
-
-      {result, state}
+        {:error, :not_found} ->
+          Logger.warning("User #{name} auth error")
+          {{:error, :invalid_auth}, state}
+      end
     end
 
     # Catch all
