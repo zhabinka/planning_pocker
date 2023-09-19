@@ -48,7 +48,21 @@ defmodule PlanningPocker.Sessions do
     def init({port, pool_size}) do
       state = %State{port: port, pool_size: pool_size}
       Logger.info("SessionManager has started, state #{inspect(state)}")
-      {:ok, state}
+      {:ok, state, {:continue, :delayed_init}}
+    end
+
+    @impl true
+    def handle_continue(:delayed_init, state) do
+      options = [
+        :binary,
+        {:active, false},
+        {:packet, :line},
+        {:reuseaddr, true}
+      ]
+
+      {:ok, listening_socket} = :gen_tcp.listen(state.port, options)
+      state = %State{state | listening_socket: listening_socket}
+      {:noreply, state}
     end
   end
 end
