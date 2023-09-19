@@ -70,6 +70,29 @@ defmodule PlanningPocker.Sessions do
           Protocol.serialyze(:ok)
       end
     end
+
+    def handle_event({:login, name}, state) do
+      alias PlanningPocker.UsersDatabase
+
+      result =
+        case UsersDatabase.find_by_name(name) do
+          {:ok, user} ->
+            Logger.info("Auth user #{inspect(user)}")
+            :ok
+
+          {:error, :not_found} ->
+            Logger.warning("User #{name} auth error")
+            {:error, :invalid_auth}
+        end
+
+      {result, state}
+    end
+
+    # Catch all
+    def handle_event(event) do
+      Logger.error("Unknown event #{inspect(event)}")
+      {:error, :unknown_event}
+    end
   end
 
   defmodule SessionManager do
