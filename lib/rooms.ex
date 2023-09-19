@@ -74,9 +74,9 @@ defmodule PlanningPocker.Rooms do
 
     @impl true
     def handle_call({:start_room, room_name}, _from, %{rooms: rooms} = state) do
-      {:ok, room_pid} = Sup.start_room(room_name)
-      state = %{state | rooms: [room_pid | rooms]}
-      Logger.info("RoomManager has started room #{inspect(room_pid)}, state: #{inspect(state)}")
+      {:ok, _} = Sup.start_room(room_name)
+      state = %{state | rooms: [room_name | rooms]}
+      Logger.info("RoomManager has started room #{inspect(room_name)}, state: #{inspect(state)}")
       {:reply, :ok, state}
     end
   end
