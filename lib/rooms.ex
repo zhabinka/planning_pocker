@@ -37,13 +37,6 @@ defmodule PlanningPocker.Rooms do
       DynamicSupervisor.start_child(@sup_name, child_spec)
     end
 
-    def find_room(room_name) do
-      case Registry.lookup(@registry_name, room_name) do
-        [{pid, _}] -> {:ok, pid}
-        [] -> {:error, :not_found}
-      end
-    end
-
     @impl true
     def init(_) do
       Logger.info("#{@sup_name} has started from #{inspect(self())}")
@@ -60,6 +53,13 @@ defmodule PlanningPocker.Rooms do
 
     def start_room(room_name) do
       GenServer.call(__MODULE__, {:start_room, room_name})
+    end
+
+    def find_room(room_name) do
+      case Registry.lookup(:room_registry, room_name) do
+        [{pid, _}] -> {:ok, pid}
+        [] -> {:error, :not_found}
+      end
     end
 
     @impl true
