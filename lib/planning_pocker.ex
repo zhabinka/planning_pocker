@@ -16,9 +16,13 @@ defmodule PlanningPocker do
 
     @impl true
     def init(_) do
+      port = 3000
+      pool_size = 5
+
       child_spec = [
         {PlanningPocker.Rooms.Sup, :no_args},
-        {PlanningPocker.Rooms.RoomManager, :no_args}
+        {PlanningPocker.Rooms.RoomManager, :no_args},
+        {PlanningPocker.Sessions.SessionManager, {port, pool_size}}
       ]
 
       Supervisor.init(child_spec, strategy: :rest_for_one)
