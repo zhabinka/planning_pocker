@@ -13,8 +13,8 @@ defmodule PlanningPocker.Sessions do
       ]
     end
 
-    def start_link({session_id, listening_socket, process_name}) do
-      GenServer.start_link(__MODULE__, {session_id, listening_socket}, name: process_name)
+    def start_link({session_id, listening_socket}) do
+      GenServer.start_link(__MODULE__, {session_id, listening_socket})
     end
 
     @impl true
@@ -63,6 +63,27 @@ defmodule PlanningPocker.Sessions do
       {:ok, listening_socket} = :gen_tcp.listen(state.port, options)
       state = %State{state | listening_socket: listening_socket}
       {:noreply, state}
+    end
+  end
+
+  defmodule SessionSup do
+    use DynamicSupervisor
+
+    @name :session_sup
+
+    def start_link(_) do
+      DynamicSupervisor.start_link(__MODULE__, :no_args, name: @name)
+    end
+
+    def start_acceptor(session_id, listening_socket) do
+      child_spec = {Session, {session_id, listening_socket}}
+      DynamicSupervisor.start_child(@name, child_spec)
+    end
+
+    @impl true
+    def init(_) do
+      Logger.info("SessionSup has started")
+      DynamicSupervisor.init(strategy: :one_for_one)
     end
   end
 end

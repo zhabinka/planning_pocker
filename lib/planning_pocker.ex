@@ -22,6 +22,7 @@ defmodule PlanningPocker do
       child_spec = [
         {PlanningPocker.Rooms.Sup, :no_args},
         {PlanningPocker.Rooms.RoomManager, :no_args},
+        {PlanningPocker.Sessions.SessionSup, :no_args},
         {PlanningPocker.Sessions.SessionManager, {port, pool_size}}
       ]
 
