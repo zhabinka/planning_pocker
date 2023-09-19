@@ -61,6 +61,12 @@ defmodule PlanningPocker.Sessions do
       ]
 
       {:ok, listening_socket} = :gen_tcp.listen(state.port, options)
+
+      1..state.pool_size
+      |> Enum.each(fn session_id ->
+        PlanningPocker.Sessions.SessionSup.start_acceptor(session_id, listening_socket)
+      end)
+
       state = %State{state | listening_socket: listening_socket}
       {:noreply, state}
     end
