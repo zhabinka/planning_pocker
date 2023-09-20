@@ -4,7 +4,9 @@ defmodule PlanningPocker do
 
   def start(_start_type, _args) do
     Logger.info("Start PlanningPocker")
-    PlanningPocker.RootSup.start_link(:no_args)
+    res = PlanningPocker.RootSup.start_link(:no_args)
+    PlanningPocker.Rooms.RoomManager.start_room("Room")
+    res
   end
 
   defmodule RootSup do
