@@ -59,6 +59,7 @@ defmodule PlanningPocker.Sessions do
         {:error, error} ->
           IO.puts("Session #{state.session_id} has got error #{inspect(error)}")
           :gen_tcp.close(state.socket)
+          Registry.unregister(:sessions_registry, state.user.id)
           state = %State{state | user: nil}
           {:noreply, state, {:continue, :waiting_for_client}}
       end
@@ -83,6 +84,7 @@ defmodule PlanningPocker.Sessions do
       case UsersDatabase.find_by_name(name) do
         {:ok, user} ->
           Logger.info("Auth user #{inspect(user)}")
+          Registry.register(:sessions_registry, user.id, user)
           state = %State{state | user: user}
           {:ok, state}
 
@@ -131,6 +133,8 @@ defmodule PlanningPocker.Sessions do
       ]
 
       {:ok, listening_socket} = :gen_tcp.listen(state.port, options)
+
+      Registry.start_link(name: :sessions_registry, keys: :unique)
 
       1..state.pool_size
       |> Enum.each(fn session_id ->
