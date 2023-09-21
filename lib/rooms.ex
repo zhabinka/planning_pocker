@@ -12,6 +12,10 @@ defmodule PlanningPocker.Rooms do
       GenServer.call(room_pid, {:join, user})
     end
 
+    def leave(room_pid, user) do
+      GenServer.call(room_pid, {:leave, user})
+    end
+
     @impl true
     def init(room_name) do
       state = %PlanningPocker.Model.Room{
@@ -33,6 +37,13 @@ defmodule PlanningPocker.Rooms do
         Logger.info("User has joined room #{inspect(state)}")
         {:reply, :ok, state}
       end
+    end
+
+    def handle_call({:leave, user}, _from, state) do
+      patricipants = List.delete(state.patricipants, user)
+      state = %PlanningPocker.Model.Room{state | patricipants: patricipants}
+      Logger.info("User has left room #{inspect(state)}")
+      {:reply, :ok, state}
     end
   end
 

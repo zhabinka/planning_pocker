@@ -59,8 +59,7 @@ defmodule PlanningPocker.Sessions do
         {:error, error} ->
           IO.puts("Session #{state.session_id} has got error #{inspect(error)}")
           :gen_tcp.close(state.socket)
-          Registry.unregister(:sessions_registry, state.user.id)
-          state = %State{state | user: nil}
+          state = on_client_disconnect(state)
           {:noreply, state, {:continue, :waiting_for_client}}
       end
     end
@@ -112,6 +111,16 @@ defmodule PlanningPocker.Sessions do
     def handle_event(event) do
       Logger.error("Unknown event #{inspect(event)}")
       {:error, :unknown_event}
+    end
+
+    def on_client_disconnect(state) do
+      Registry.unregister(:sessions_registry, state.user.id)
+      state = %State{state | user: nil}
+      # TODO: Remove user from all rooms
+      {:ok, room_pid} = PlanningPocker.Rooms.RoomManager.find_room("Room")
+      PlanningPocker.Rooms.Room.leave(room_pid, state.user)
+      state = %State{state | user: nil}
+      state
     end
   end
 
