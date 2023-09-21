@@ -18,15 +18,15 @@ defmodule PlanningPocker.Protocol do
     {:error, :unknown_message}
   end
 
-  def serialyze({:joined, user, room}),
-    do: "#{user.role} #{user.name} hash joined to the room #{room.name}"
+  def serialyze({:joined, user, room_name}),
+    do: "#{user.role} #{user.name} hash joined to the room #{room_name}"
 
   def serialyze({:topic, description}), do: "Topic: #{description}"
   def serialyze({:voted, user}), do: "#{user.name} has voted"
   def serialyze({:show, results}), do: "Vote results: #{inspect(results)}"
 
-  def serialyze({:leaved, user, room}),
-    do: "#{user.role} #{user.name} hash leaved from the room #{room.name}"
+  def serialyze({:leaved, user, room_name}),
+    do: "#{user.role} #{user.name} hash leaved from the room #{room_name}"
 
   def serialyze(:ok), do: "OK"
   def serialyze({:error, error}), do: "ERROR: #{inspect(error)}"

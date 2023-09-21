@@ -17,6 +17,10 @@ defmodule PlanningPocker.Sessions do
       GenServer.start_link(__MODULE__, {session_id, listening_socket})
     end
 
+    def send_event(session_id, event) do
+      Logger.info("Session.send_event: #{inspect(session_id)}, #{inspect(event)}")
+    end
+
     @impl true
     def init({session_id, listening_socket}) do
       state = %State{

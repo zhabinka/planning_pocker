@@ -16,6 +16,10 @@ defmodule PlanningPocker.Rooms do
       GenServer.call(room_pid, {:leave, user})
     end
 
+    def broadcast(room_pid, event) do
+      GenServer.call(room_pid, {:broadcast, event})
+    end
+
     @impl true
     def init(room_name) do
       state = %PlanningPocker.Model.Room{
@@ -35,6 +39,7 @@ defmodule PlanningPocker.Rooms do
         patricipants = [user | state.patricipants]
         state = %PlanningPocker.Model.Room{state | patricipants: patricipants}
         Logger.info("User has joined room #{inspect(state)}")
+        state = _broadcast({:joined, user, state.name}, state)
         {:reply, :ok, state}
       end
     end
@@ -43,7 +48,35 @@ defmodule PlanningPocker.Rooms do
       patricipants = List.delete(state.patricipants, user)
       state = %PlanningPocker.Model.Room{state | patricipants: patricipants}
       Logger.info("User has left room #{inspect(state)}")
+      state = _broadcast({:leaved, user, state.name}, state)
       {:reply, :ok, state}
+    end
+
+    def handle_call({:broadcast, event}, _from, state) do
+      state = _broadcast(event, state)
+      {:reply, :ok, state}
+    end
+
+    # Catch all
+    def handle_call(message, _from, state) do
+      Logger.error("Room unknown call #{inspect(message)}")
+      {:reply, :error, state}
+    end
+
+    def _broadcast(event, state) do
+      Logger.info("Room _broadcast #{inspect(event)}")
+
+      Enum.each(
+        state.patricipants,
+        fn user ->
+          case Registry.lookup(:sessions_registry, user.id) do
+            [] -> Logger.error("Session fo user #{inspect(user.id)} is not found")
+            [{session_pid, _}] -> PlanningPocker.Sessions.Session.send_event(session_pid, event)
+          end
+        end
+      )
+
+      state
     end
   end
 
