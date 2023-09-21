@@ -8,6 +8,10 @@ defmodule PlanningPocker.Rooms do
       GenServer.start_link(__MODULE__, room_name, name: process_name)
     end
 
+    def join(room_pid, user) do
+      GenServer.call(room_pid, {:join, user})
+    end
+
     @impl true
     def init(room_name) do
       state = %PlanningPocker.Model.Room{
@@ -17,6 +21,18 @@ defmodule PlanningPocker.Rooms do
 
       Logger.info("#{inspect(state)} has started")
       {:ok, state}
+    end
+
+    @impl true
+    def handle_call({:join, user}, _from, state) do
+      if user in state.patricipants do
+        {:reply, {:error, :already_joined}, state}
+      else
+        patricipants = [user | state.patricipants]
+        state = %PlanningPocker.Model.Room{state | patricipants: patricipants}
+        Logger.info("User has joined room #{inspect(state)}")
+        {:reply, :ok, state}
+      end
     end
   end
 

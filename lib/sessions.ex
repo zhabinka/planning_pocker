@@ -94,6 +94,20 @@ defmodule PlanningPocker.Sessions do
       end
     end
 
+    def handle_event({:join, _room_name}, %State{user: nil} = state) do
+      {{:error, :forbiden}, state}
+    end
+
+    def handle_event({:join, room_name}, state) do
+      response =
+        case PlanningPocker.Rooms.RoomManager.find_room(room_name) do
+          {:ok, room_pid} -> PlanningPocker.Rooms.Room.join(room_pid, state.user)
+          error -> error
+        end
+
+      {response, state}
+    end
+
     # Catch all
     def handle_event(event) do
       Logger.error("Unknown event #{inspect(event)}")
